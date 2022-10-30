@@ -1,26 +1,21 @@
 #include <WiFi.h>
 
-const char *SSID = "XXXXX";
-const char *PWD = "XXXXX";
-
-String currentFileName = String();
-
-unsigned char image_buffer[20000];
-
-File fsUploadFile;
-
+const char *SSID = "xxx";
+const char *PWD = "xxx";
+const int PAYLOAD_BYTES = 28000;
+unsigned char image_buffer[PAYLOAD_BYTES];
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
-void notifyClients() {
+void notifyClients(uint32_t id) {
   Serial.println("Responding to client...");
-  ws.textAll("ok");
+  ws.text(id, "ok");
 }
 
-StaticJsonDocument<20000> jsonDoc;
-char finalData[20000];
+StaticJsonDocument<PAYLOAD_BYTES> jsonDoc;
+char finalData[PAYLOAD_BYTES];
 
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, uint32_t id) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   strcat(finalData, (char*)data);
   uint64_t currentLen = len + info->index;
@@ -31,18 +26,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       return;
     }  else {
       renderImage();
-      notifyClients();
+      notifyClients(id);
     }
   }
 }
 
 void renderImage() {
-  const String image = jsonDoc["image"];
-  const int width = jsonDoc["width"];
-  const int height = jsonDoc["height"];
-  const int x = jsonDoc["x"];
-  const int y = jsonDoc["y"];  
-  setImage(image, x, y, width, height);
+  setImage(jsonDoc["image"], jsonDoc["x"], jsonDoc["y"], jsonDoc["width"], jsonDoc["height"]);
   jsonDoc = NULL;
   memset(finalData, 0, sizeof finalData);
 }
@@ -57,8 +47,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
       break;
     case WS_EVT_DATA:
-      Serial.println("Message arrived");
-      handleWebSocketMessage(arg, data, len);
+      handleWebSocketMessage(arg, data, len, client->id());
       break;
     case WS_EVT_PONG:
     case WS_EVT_ERROR:
@@ -68,6 +57,22 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 
 void initWebSocket() {
   ws.onEvent(onEvent);
+  server.on("/display/sleep", HTTP_GET, [](AsyncWebServerRequest *request){
+    IT8951SystemRun();
+    request->send(200, "text/plain", "display is sleeping");
+  });
+  server.on("/display/standBy", HTTP_GET, [](AsyncWebServerRequest *request){
+    IT8951StandBy();
+    request->send(200, "text/plain", "display is sleeping");
+  });
+  server.on("/display/systemRun", HTTP_GET, [](AsyncWebServerRequest *request){
+    IT8951Sleep();
+    request->send(200, "text/plain", "display has woken up");
+  });
+  server.on("/display/clear", HTTP_GET, [](AsyncWebServerRequest *request){
+    IT8951DisplayArea(0,0, gstI80DevInfo.usPanelW, gstI80DevInfo.usPanelH, 0);
+    request->send(200, "text/plain", "display has been cleared");
+  });
   server.addHandler(&ws);
 }
 
@@ -106,17 +111,13 @@ void clearImage() {
 
 void setImage(String image, int x, int y, int width, int height) {
   stringToPixelArray(image);
-  Serial.print("IMAGE BUFFER FIRST ITEM : ");
-  Serial.println(image_buffer[0]);
   display_buffer(image_buffer, x, y, width, height);
 }
 
 void stringToPixelArray(String dataString) {
-  Serial.print("IMAGE data : ");
-  Serial.println(dataString);
   char* buffer = const_cast<char*>(dataString.c_str());
-  Serial.print("IMAGE char data : ");
-  Serial.println(buffer[2]);
+  //image_buffer = reinterpret_cast<unsigned char*>(buffer);
+  
   int i=0;
   char *p = strtok(buffer, ",");
   while(p != NULL) {
