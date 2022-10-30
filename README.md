@@ -6,6 +6,8 @@ An html/js app helper is available as well. it can show you a simulation of the 
 
 It is not the fastest code and can be improved a lot, the javascript rendering is wrong i think because of the pixel interpolation in the pixel list. but its good enough for a first release.
 
+Simuator/test app demo available here : https://stan69b.github.io/Waveshare-10.3-it8951-esp32/html-helper-tool/
+
 Feel free to open issues if you have questions on how to use.
 
 INFO: code lacks wifi reconnection in case of router being rebooted... for now you have to unplug replug.
