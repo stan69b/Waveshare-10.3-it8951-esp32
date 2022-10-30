@@ -1,12 +1,15 @@
 #include <SPI.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
 
-#define MISO 19
+#define MISO 23 //19
 #define MOSI 18
 #define SCK 5
-#define CS 12
+#define CS 17 //12
 
 #define RESET 16
-#define HRDY 17
+#define HRDY 4 //17
 
 #define bcm2835_gpio_write digitalWrite
 #define bcm2835_spi_transfer SPI.transfer
@@ -31,8 +34,8 @@
 #define USDEF_I80_CMD_GET_DEV_INFO 0x0302
 #define USDEF_I80_CMD_DPY_BUF_AREA 0x0037
 //Panel
-#define IT8951_PANEL_WIDTH   1024 //it Get Device information
-#define IT8951_PANEL_HEIGHT   758
+#define IT8951_PANEL_WIDTH   1872 //it Get Device information
+#define IT8951_PANEL_HEIGHT   1404
 
 //Rotate mode
 #define IT8951_ROTATE_0     0

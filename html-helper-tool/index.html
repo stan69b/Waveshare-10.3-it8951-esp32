@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="app-header">
+            <div class="left-block">
+                <div class="title">Waveshare ESP32 - Image tester</div>
+            </div>
+            <div class="right-block"></div>
+        </div>
+        <div class="app-content">
+            <div class="left-block">
+                <div class="title">Settings</div>
+                <div class="content">
+                    <div class="input-block">
+                        <label for="wsu">Websocket url : </label>
+                        <input id="wsu" type="text" value="ws://192.168.1.152/ws" placeholder="ws://xxx.xxx.x.xxx" />
+                        <button onclick="connectSocket()">Connect to socket</button>
+                    </div>
+                    <div class="input-block">
+                        <label for="noltr">Number of lines to send per payload : </label>
+                        <input id="noltr" type="number" value="4" placeholder="4" />
+                    </div>
+                    <div class="image-settings">
+                        <div class="input-block">
+                            <label for="imgData">Image pixel data (hex string array): </label>
+                            <textarea id="imgData" placeholder="image pixel data as hex"></textarea>
+                        </div>
+                        <div class="input-block">
+                            <label for="imgHeight">Image height : </label>
+                            <input id="imgHeight" type="number" value="467" placeholder="height in px" />
+                        </div>
+                        <div class="input-block">
+                            <label for="imgWidth">Image width : </label>
+                            <input id="imgWidth" type="number" value="467" placeholder="width in px" />
+                        </div>
+                        <div class="input-block">
+                            <label for="imgX">Image x position : </label>
+                            <input id="imgX" type="number" value="0" placeholder="x postition" />
+                        </div>
+                        <div class="input-block">
+                            <label for="imgY">Image y position : </label>
+                            <input id="imgY" type="number" value="0" placeholder="y position" />
+                        </div>
+                    </div>
+                    <div class="render-image-btn">
+                        <button onclick="sendImage()" type="button">Send image to device</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right-block">
+                <div class="simulator"></div>
+                <div class="console">
+                    <div class="title">Console</div>
+                    <div class="console-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
