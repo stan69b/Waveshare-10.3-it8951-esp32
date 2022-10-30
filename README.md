@@ -37,10 +37,10 @@ Original code taken from: https://github.com/waveshare/IT8951/
 5. Enjoy your success
 
 # Wiring
-![Wiring](/wiring.jpg)
+![Wiring](/it8951/wiring.jpg)
 
 # Result
-![Result](/result.jpg)
+![Result](/it8951/result.jpg)
 
 # Example Picture
 The example picture that will show up on the epaper is [Obernberg am Inn Adlerwarte: Rotmilan](https://commons.wikimedia.org/wiki/File:Obernberg_am_Inn_Adlerwarte_Rotmilan-0136.jpg)
