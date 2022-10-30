@@ -1,5 +1,5 @@
 # What has been added with this FORK
-The main.ino now has wifi support. The idea behind this fork is to allow one to display image on a waveshare display (10.3 inch in my case) with an ESP32 from a remove source that pushes the data to the controller/display. Big thanks to the original developper (clashman[https://github.com/clashman]) of this port/lib. (original project[https://github.com/clashman/it8951])
+The main.ino now has wifi support. The idea behind this fork is to allow one to display image on a waveshare display (10.3 inch in my case) with an ESP32 from a remote source that pushes the data to the controller/display. Big thanks to the original developper (clashman[https://github.com/clashman]) of this port/lib. (original project[https://github.com/clashman/it8951])
 The app now waits for a websocket payload with a list of pixels to render them. The esp32 having very little memory, a full image cannot be sent or stored. This systeme allows you to send an image line of pixel by line of pixel (or more lines if it fits in the memory allocated in the c++ code). The
 
 An html/js app helper is available as well. it can show you a simulation of the rendering in the browser, given a list of pixels. and can connect to a websocket and send the image to the actuel esp32 (while simulating it as well in the browser).
