@@ -1,10 +1,12 @@
 # What has been added with this FORK
-The main.ino now has wifi support. The idea behind this fork is to allow one to display image on a waveshare display (10.3 inch in my case) with an ESP32. Big thanks to the original developper (clashman[https://github.com/clashman]) of this port/lib. (original project[https://github.com/clashman/it8951])
+The main.ino now has wifi support. The idea behind this fork is to allow one to display image on a waveshare display (10.3 inch in my case) with an ESP32 from a remote source that pushes the data to the controller/display. Big thanks to the original developper (clashman[https://github.com/clashman]) of this port/lib. (original project[https://github.com/clashman/it8951])
 The app now waits for a websocket payload with a list of pixels to render them. The esp32 having very little memory, a full image cannot be sent or stored. This systeme allows you to send an image line of pixel by line of pixel (or more lines if it fits in the memory allocated in the c++ code). The
 
 An html/js app helper is available as well. it can show you a simulation of the rendering in the browser, given a list of pixels. and can connect to a websocket and send the image to the actuel esp32 (while simulating it as well in the browser).
 
 It is not the fastest code and can be improved a lot, the javascript rendering is wrong i think because of the pixel interpolation in the pixel list. but its good enough for a first release.
+
+Simuator/test app demo available here : https://stan69b.github.io/Waveshare-10.3-it8951-esp32/html-helper-tool/
 
 Feel free to open issues if you have questions on how to use.
 
@@ -37,10 +39,10 @@ Original code taken from: https://github.com/waveshare/IT8951/
 5. Enjoy your success
 
 # Wiring
-![Wiring](/wiring.jpg)
+![Wiring](/it8951/wiring.jpg)
 
 # Result
-![Result](/result.jpg)
+![Result](/it8951/result.jpg)
 
 # Example Picture
 The example picture that will show up on the epaper is [Obernberg am Inn Adlerwarte: Rotmilan](https://commons.wikimedia.org/wiki/File:Obernberg_am_Inn_Adlerwarte_Rotmilan-0136.jpg)
