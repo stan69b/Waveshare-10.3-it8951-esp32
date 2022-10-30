@@ -7,13 +7,15 @@ var json = {
     "x": 0,
     "y": 0
 }
-const MAX_ELEMENT_PER_PAYLOAD = 2800;
+const MAX_ELEMENT_PER_PAYLOAD = 3500;
 var imageLineArray = [];
 var pointer = 0;
 var imagePixelHeightRatio = 1;
 var numberOfLinesToRender = 4;
 let socket = null;
 let connectedToSocket = false;
+
+esp32RenderingFailureTimeout = null;
 
 const socketUrlInput = document.querySelector('#wsu');
 const numberOfLinesInput = document.querySelector('#noltr');
@@ -55,6 +57,7 @@ var connectSocket = function() {
         console.info(`rendering line : ${(pointer * numberOfLinesToRender) * imagePixelHeightRatio} / ${json.height}`);
         writeToCustomConsole(`rendering line : ${(pointer * numberOfLinesToRender) * imagePixelHeightRatio} / ${json.height}`);
         if (event.data == "ok") {
+            esp32RenderingFailureTimeout ? clearTimeout(esp32RenderingFailureTimeout) : null;
             if (imageLineArray && imageLineArray[pointer] && imageLineArray[pointer].length) {
                 var payload = {
                     image: imageLineArray[pointer].join(","),
@@ -97,7 +100,7 @@ var sendImage = function() {
     console.log("image width :", json.width);
     console.log("image height :", json.height);
     console.log("pixel width x height", json.height * json.width);
-    imagePixelHeightRatio = ((json.height * json.width) / json.image.length);
+    imagePixelHeightRatio = Math.ceil(((json.height * json.width) / json.image.length));
     console.log("ratio", imagePixelHeightRatio);
 
     var itemsnumber = (json.width * numberOfLinesToRender);
@@ -120,6 +123,10 @@ var sendImage = function() {
         renderSimulatedImageLine(pointer);
         if (connectedToSocket) {
             socket.send(JSON.stringify(payload));
+            esp32RenderingFailureTimeout = setTimeout(() => {
+                writeToCustomConsole(`ERROR : ESP32 has not responded the the first frame sent.`);
+                writeToCustomConsole(`ERROR : The payload might be too big, try to lower the value of "Number of lines to send per payload"`);
+            }, 2000);
         } else {
             var counter = 0;
             var simulatorInterval = setInterval(() => {
@@ -197,4 +204,80 @@ var renderSimulatedImageLine = function(lineNumber) {
 
 var dataToColor = function(data) {
     return data ? data.replace('0x', '#') + '0' : '#000';
+}
+
+var updateJsonPayloadImage = function() {
+    var data = imgDataInput.value;
+    json.image = JSON.parse(data);
+}
+
+var updateJsonPayloadWidth = function() {
+    var data = imgWidthInput.value;
+    json.width = parseInt(data);
+}
+
+var updateJsonPayloadHeight = function() {
+    var data = imgHeightInput.value;
+    json.height = parseInt(data);
+}
+
+var updateLinePerPayload = function() {
+    numberOfLinesToRender = parseInt(numberOfLinesInput.value);
+    if (numberOfLinesToRender * json.width > MAX_ELEMENT_PER_PAYLOAD) {
+        alert(`Warning : This many lines for an image of that width will not work with the esp32\n
+        Maximum items allowed : ${MAX_ELEMENT_PER_PAYLOAD} / current items in payload : ${numberOfLinesToRender * json.width}`);
+    };
+}
+
+const handleFile = (e) => {
+    const [file] = e.target.files;
+    if (file) {
+        const reader = new FileReader();
+
+        reader.addEventListener("load", e => {
+            const img = document.createElement("img");
+            img.addEventListener("load", e => {
+                const cvs = document.createElement("canvas");
+                const ctx = cvs.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                console.log("FERGFWESDGEWRSDX TEST", img.toString('hex'));
+                const tmpArray = ctx.getImageData(0, 0, img.width, img.height);
+                console.log(tmpArray);
+                const tmpPixelArray = [];
+                for (let index = 0; index < tmpArray.data.length; index += 4) {
+                    const red = tmpArray.data[index];
+                    const green = tmpArray.data[index + 1];
+                    const blue = tmpArray.data[index + 2];
+                    const alpha = tmpArray.data[index + 3];
+
+                    tmpPixelArray.push('0x' + rgbToHex(red, green, blue).slice(0, 2));
+                }
+                imgDataInput.value = JSON.stringify(tmpPixelArray);
+                imgHeightInput.value = tmpArray.height;
+                imgWidthInput.value = tmpArray.width;
+
+                updateJsonPayloadImage();
+                updateJsonPayloadWidth();
+                updateJsonPayloadHeight();
+
+                console.log(json);
+            });
+
+            img.src = e.target.result
+        }, false);
+
+        reader.readAsDataURL(file);
+    }
+};
+
+document.querySelector("input#img").addEventListener("change", handleFile);
+
+
+function rgbToHex(r, g, b) {
+    return (valueToHex(r) + valueToHex(g) + valueToHex(b));
+}
+
+function valueToHex(c) {
+    var hex = c.toString(16);
+    return hex
 }

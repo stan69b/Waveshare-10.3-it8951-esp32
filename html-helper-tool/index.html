@@ -28,20 +28,23 @@
                     </div>
                     <div class="input-block">
                         <label for="noltr">Number of lines to send per payload : </label>
-                        <input id="noltr" type="number" value="4" placeholder="4" />
+                        <input id="noltr" onchange="updateLinePerPayload()" type="number" value="4" placeholder="4" />
                     </div>
                     <div class="image-settings">
                         <div class="input-block">
                             <label for="imgData">Image pixel data (hex string array): </label>
-                            <textarea id="imgData" placeholder="image pixel data as hex"></textarea>
+                            <textarea id="imgData" onchange="updateJsonPayloadImage()" placeholder="image pixel data as hex"></textarea>
+                            <div class="image-upload-converter">
+                                <input id="img" type="file">
+                            </div>
                         </div>
                         <div class="input-block">
                             <label for="imgHeight">Image height : </label>
-                            <input id="imgHeight" type="number" value="467" placeholder="height in px" />
+                            <input id="imgHeight" onchange="updateJsonPayloadHeight()" type="number" value="700" placeholder="height in px" />
                         </div>
                         <div class="input-block">
                             <label for="imgWidth">Image width : </label>
-                            <input id="imgWidth" type="number" value="467" placeholder="width in px" />
+                            <input id="imgWidth" onchange="updateJsonPayloadWidth()" type="number" value="467" placeholder="width in px" />
                         </div>
                         <div class="input-block">
                             <label for="imgX">Image x position : </label>
