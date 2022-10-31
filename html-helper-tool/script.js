@@ -19,7 +19,7 @@ let connectedToSocket = false;
 
 esp32RenderingFailureTimeout = null;
 
-const socketUrlInput = document.querySelector('#wsu');
+const ESP32Url = document.querySelector('#wsu');
 const numberOfLinesInput = document.querySelector('#noltr');
 //image
 const imgDataInput = document.querySelector('#imgData');
@@ -29,6 +29,7 @@ const imgXInput = document.querySelector('#imgX');
 const imgYInput = document.querySelector('#imgY');
 const consoleContent = document.querySelector('.console-content');
 const simulator = document.querySelector('.simulator');
+let deviceUrl = ESP32Url.value || '192.168.1.152';
 
 numberOfLinesInput.value = numberOfLinesToRender;
 imgDataInput.value = JSON.stringify(json.image);
@@ -45,7 +46,8 @@ var connectSocket = function() {
         socket = null;
     }
 
-    const websocketUrl = socketUrlInput.value || 'ws://192.168.1.152/ws';
+    deviceUrl = ESP32Url.value || '192.168.1.152';
+    const websocketUrl = `ws://${deviceUrl}/ws` || 'ws://192.168.1.152/ws';
     writeToCustomConsole('Connecting to websocket server : ' + websocketUrl);
     socket = new WebSocket(websocketUrl);
 
@@ -56,21 +58,26 @@ var connectSocket = function() {
     };
 
     socket.onmessage = function(event) {
-        console.info(`rendering line : ${(pointer * numberOfLinesToRender) * imagePixelHeightRatio} / ${json.height}`);
-        writeToCustomConsole(`rendering line : ${(pointer * numberOfLinesToRender) * imagePixelHeightRatio} / ${json.height}`);
+        let currentLine = ((pointer * numberOfLinesToRender) * imagePixelHeightRatio);
+        if (currentLine > json.height) {
+            currentLine = json.height;
+        }
+        console.info(`rendering line : ${currentLine} / ${json.height}`);
+        writeToCustomConsole(`rendering line : ${currentLine} / ${json.height}`);
         if (event.data == "ok") {
             esp32RenderingFailureTimeout ? clearTimeout(esp32RenderingFailureTimeout) : null;
             if (imageLineArray && imageLineArray[pointer] && imageLineArray[pointer].length) {
                 var payload = {
-                    image: imageLineArray[pointer].join(","),
-                    width: json.width,
-                    height: imagePixelHeightRatio * numberOfLinesToRender,
-                    x: json.x,
-                    y: json.y + ((pointer * numberOfLinesToRender) * imagePixelHeightRatio)
-                }
+                        image: imageLineArray[pointer].join(","),
+                        width: json.width,
+                        height: imagePixelHeightRatio * numberOfLinesToRender,
+                        x: json.x,
+                        y: json.y + currentLine
+                    }
+                    // console.log("payload sent to device :", payload);
+                socket.send(JSON.stringify(payload));
                 renderSimulatedImageLine(pointer);
                 pointer += 1;
-                socket.send(JSON.stringify(payload));
             }
         }
     };
@@ -83,13 +90,13 @@ var connectSocket = function() {
             // e.g. server process killed or network down
             // event.code is usually 1006 in this case
             console.warn('[close] Connection died');
-            writeToCustomConsole('Socket connection died');
+            writeToCustomConsole('Socket connection died', true);
         }
     };
 
     socket.onerror = function(error) {
         console.error(`[error]`);
-        writeToCustomConsole('Error with socket connection');
+        writeToCustomConsole('Error with socket connection', true);
     };
 }
 
@@ -98,22 +105,22 @@ var sendImage = function() {
     pointer = 0;
     simulator.innerHTML = "";
 
-    console.log("pixels in array :", json.image.length);
-    console.log("image width :", json.width);
-    console.log("image height :", json.height);
-    console.log("pixel width x height", json.height * json.width);
+    // console.log("pixels in array :", json.image.length);
+    // console.log("image width :", json.width);
+    // console.log("image height :", json.height);
+    // console.log("pixel width x height", json.height * json.width);
     imagePixelHeightRatio = Math.ceil(((json.height * json.width) / json.image.length));
-    console.log("ratio", imagePixelHeightRatio);
+    // console.log("ratio", imagePixelHeightRatio);
 
     var itemsnumber = (json.width * numberOfLinesToRender);
     for (let index = 0; index < Math.ceil(json.height / imagePixelHeightRatio); index++) {
         const pixelLine = json.image.slice(index * itemsnumber, (index * itemsnumber) + itemsnumber);
-        console.log(pixelLine.length);
+        // console.log(pixelLine.length);
         imageLineArray.push(pixelLine);
     }
 
-    console.info(`rendering line : 0 / ${json.height}`);
-    writeToCustomConsole(`rendering line : 0 / ${json.height}`);
+    console.info(`rendering line : ${numberOfLinesToRender} / ${json.height}`);
+    writeToCustomConsole(`rendering line : ${numberOfLinesToRender} / ${json.height}`);
     if (imageLineArray && imageLineArray[pointer]) {
         var payload = {
             image: imageLineArray[pointer].join(","),
@@ -126,8 +133,8 @@ var sendImage = function() {
         if (connectedToSocket) {
             socket.send(JSON.stringify(payload));
             esp32RenderingFailureTimeout = setTimeout(() => {
-                writeToCustomConsole(`ERROR : ESP32 has not responded the the first frame sent.`);
-                writeToCustomConsole(`ERROR : The payload might be too big, try to lower the value of "Number of lines to send per payload"`);
+                writeToCustomConsole(`ERROR : ESP32 has not responded to the first frame sent.`, true);
+                writeToCustomConsole(`ERROR : The payload might be too big, try to lower the value of "Number of lines to send per payload"`, true);
             }, 2000);
         } else {
             var counter = 0;
@@ -147,10 +154,13 @@ var sendImage = function() {
     }
 }
 
-var writeToCustomConsole = function(stringvalue) {
+var writeToCustomConsole = function(stringvalue, error) {
     var div = document.createElement("div");
     div.classList.add('console-item');
-    div.innerHTML = connectedToSocket ? '$ ' + stringvalue : '$(simulation) ' + stringvalue;
+    if (error) {
+        div.classList.add('error');
+    }
+    div.innerHTML = connectedToSocket ? '$ ' + stringvalue : '(simulation)$ ' + stringvalue;
     consoleContent.append(div);
 
     consoleContent.scrollTop = consoleContent.scrollHeight;
@@ -176,7 +186,10 @@ var renderSimulatedImageLine = function(lineNumber) {
         // pixel of second part and so on...
         const pixels1 = group.slice(0, Math.ceil(json.width / 2));
         const pixels2 = group.slice(Math.ceil(json.width / 2), json.width);
-        pixels1.forEach((pixel, index) => {
+        for (let index = 0; index < pixels1.length; index++) {
+            const pixel = pixels1[index];
+            const pixel2 = pixels2[index];
+
             var pixelItem = document.createElement("div");
             pixelItem.classList.add('simulator-image-pixel');
             pixelItem.style.width = '1px';
@@ -188,9 +201,9 @@ var renderSimulatedImageLine = function(lineNumber) {
             pixelItemBis.classList.add('simulator-image-pixel');
             pixelItemBis.style.width = '1px';
             pixelItemBis.style.height = imagePixelHeightRatio + 'px';
-            pixelItemBis.style.backgroundColor = dataToColor(pixels2[index]);
+            pixelItemBis.style.backgroundColor = dataToColor(pixel2);
             pixelContainer.append(pixelItemBis);
-        });
+        }
 
         simulator.append(pixelContainer);
     });
@@ -216,12 +229,51 @@ var updateJsonPayloadHeight = function() {
     json.height = parseInt(data);
 }
 
+var updateJsonPayloadX = function() {
+    var data = imgXInput.value;
+    json.x = parseInt(data);
+}
+
+var updateJsonPayloadY = function() {
+    var data = imgYInput.value;
+    json.y = parseInt(data);
+}
+
 var updateLinePerPayload = function() {
     numberOfLinesToRender = parseInt(numberOfLinesInput.value);
     if (numberOfLinesToRender * json.width > MAX_ELEMENT_PER_PAYLOAD) {
         alert(`Warning : This many lines for an image of that width will not work with the esp32\n
         Maximum items allowed : ${MAX_ELEMENT_PER_PAYLOAD} / current items in payload : ${numberOfLinesToRender * json.width}`);
     };
+}
+
+var clearDisplay = function() {
+    deviceUrl = ESP32Url.value;
+    writeToCustomConsole(`Sending clear display request ...`);
+    httpGetAsync(`http://${deviceUrl}/display/clear`, (responseText) => {
+        writeToCustomConsole(`Request recieved by server`);
+        simulator.innerHTML = "";
+        writeToCustomConsole(`Server response : ${responseText}`);
+    });
+}
+
+function httpGetAsync(theUrl, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState === 4) {
+            const status = xmlHttp.status;
+            if (status === 0 || (status >= 200 && status < 400)) {
+                callback(xmlHttp.responseText);
+            } else {
+                writeToCustomConsole(`ERROR : ESP32 has not responded the GET request.`, true);
+            }
+        }
+    }
+    xmlHttp.onerror = function() {
+        writeToCustomConsole(`ERROR : ESP32 has not responded the GET request. Check device IP`, true);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
 }
 
 const handleFile = (e) => {
@@ -235,9 +287,8 @@ const handleFile = (e) => {
                 const cvs = document.createElement("canvas");
                 const ctx = cvs.getContext("2d");
                 ctx.drawImage(img, 0, 0);
-                console.log("FERGFWESDGEWRSDX TEST", img.toString('hex'));
                 const tmpArray = ctx.getImageData(0, 0, img.width, img.height);
-                console.log(tmpArray);
+                // console.log(tmpArray);
                 const tmpPixelArray = [];
                 for (let index = 0; index < tmpArray.data.length; index += 4) {
                     const red = tmpArray.data[index];
@@ -250,12 +301,14 @@ const handleFile = (e) => {
                 imgDataInput.value = JSON.stringify(tmpPixelArray);
                 imgHeightInput.value = tmpArray.height;
                 imgWidthInput.value = tmpArray.width;
+                numberOfLinesInput.value = Math.floor(MAX_ELEMENT_PER_PAYLOAD / tmpArray.width);
 
                 updateJsonPayloadImage();
                 updateJsonPayloadWidth();
                 updateJsonPayloadHeight();
+                updateLinePerPayload();
 
-                console.log(json);
+                // console.log(json);
             });
 
             img.src = e.target.result
@@ -275,4 +328,4 @@ function rgbToHex(r, g, b) {
 function valueToHex(c) {
     var hex = c.toString(16);
     return hex
-}
+};

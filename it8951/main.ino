@@ -35,6 +35,7 @@ void renderImage() {
   setImage(jsonDoc["image"], jsonDoc["x"], jsonDoc["y"], jsonDoc["width"], jsonDoc["height"]);
   jsonDoc = NULL;
   memset(finalData, 0, sizeof finalData);
+  memset(image_buffer, 0, sizeof image_buffer);
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
@@ -56,6 +57,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 }
 
 void initWebSocket() {
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   ws.onEvent(onEvent);
   server.on("/display/sleep", HTTP_GET, [](AsyncWebServerRequest *request){
     IT8951SystemRun();
@@ -74,6 +76,8 @@ void initWebSocket() {
     request->send(200, "text/plain", "display has been cleared");
   });
   server.addHandler(&ws);
+  // Start server
+  server.begin();
 }
 
 void setup(void)
@@ -95,8 +99,6 @@ void setup(void)
     if (connected == true) {
       Serial.println("Connected to wifi !");
         initWebSocket();
-        // Start server
-        server.begin();
     }
 }
 
@@ -110,6 +112,8 @@ void clearImage() {
 }
 
 void setImage(String image, int x, int y, int width, int height) {
+  Serial.print("X value given to diaplay : ");
+  Serial.println(x);
   stringToPixelArray(image);
   display_buffer(image_buffer, x, y, width, height);
 }

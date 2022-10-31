@@ -15,20 +15,22 @@
             <div class="left-block">
                 <div class="title">Waveshare ESP32 - Image tester</div>
             </div>
-            <div class="right-block"></div>
+            <div class="right-block">
+                <button class="clear-btn" onclick="clearDisplay()">Clear Display</button>
+            </div>
         </div>
         <div class="app-content">
             <div class="left-block">
                 <div class="title">Settings</div>
                 <div class="content">
                     <div class="input-block">
-                        <label for="wsu">Websocket url : </label>
-                        <input id="wsu" type="text" value="ws://192.168.1.152/ws" placeholder="ws://xxx.xxx.x.xxx" />
+                        <label for="wsu">Device IP : </label>
+                        <input id="wsu" type="text" value="192.168.1.152" placeholder="xxx.xxx.x.xxx" />
                         <button onclick="connectSocket()">Connect to socket</button>
                     </div>
                     <div class="input-block">
                         <label for="noltr">Number of lines to send per payload : </label>
-                        <input id="noltr" onchange="updateLinePerPayload()" type="number" value="4" placeholder="4" />
+                        <input id="noltr" onchange="updateLinePerPayload()" type="number" value="7" placeholder="7" />
                     </div>
                     <div class="image-settings">
                         <div class="input-block">
@@ -39,20 +41,20 @@
                             </div>
                         </div>
                         <div class="input-block">
-                            <label for="imgHeight">Image height : </label>
-                            <input id="imgHeight" onchange="updateJsonPayloadHeight()" type="number" value="700" placeholder="height in px" />
-                        </div>
-                        <div class="input-block">
                             <label for="imgWidth">Image width : </label>
                             <input id="imgWidth" onchange="updateJsonPayloadWidth()" type="number" value="467" placeholder="width in px" />
                         </div>
                         <div class="input-block">
+                            <label for="imgHeight">Image height : </label>
+                            <input id="imgHeight" onchange="updateJsonPayloadHeight()" type="number" value="700" placeholder="height in px" />
+                        </div>
+                        <div class="input-block">
                             <label for="imgX">Image x position : </label>
-                            <input id="imgX" type="number" value="0" placeholder="x postition" />
+                            <input id="imgX" onchange="updateJsonPayloadX()" type="number" value="0" placeholder="x postition" />
                         </div>
                         <div class="input-block">
                             <label for="imgY">Image y position : </label>
-                            <input id="imgY" type="number" value="0" placeholder="y position" />
+                            <input id="imgY" onchange="updateJsonPayloadY()" type="number" value="0" placeholder="y position" />
                         </div>
                     </div>
                     <div class="render-image-btn">

@@ -25,6 +25,19 @@ body {
 
 .main-container .app-header .right-block {
     flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 15px;
+}
+
+button.clear-btn {
+    width: auto;
+    padding: 0px 15px;
+}
+
+.console-item.error {
+    color: #e30000;
 }
 
 .main-container .app-header .left-block {

@@ -11,9 +11,10 @@ uint8_t display_begin() {
     return err == 0;
 }
 
-void display_buffer(uint8_t* addr, uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+void display_buffer(uint8_t* addr, uint32_t x, uint32_t y, uint32_t w, uint32_t h, int mode = 2) {
     gpFrameBuf = addr;
     Serial.println("Displaying image");
-    IT8951DisplayArea(x, y, w, h, 2);
+    IT8951_BMP_Example(x, y, w, h); // needed to draw images at any positions other than 0,0
+    IT8951DisplayArea(x, y, w, h, mode);
     Serial.println("done");
 }
