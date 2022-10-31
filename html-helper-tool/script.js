@@ -58,8 +58,10 @@ var connectSocket = function() {
     };
 
     socket.onmessage = function(event) {
+        let correction = 0;
         let currentLine = ((pointer * numberOfLinesToRender) * imagePixelHeightRatio);
         if (currentLine > json.height) {
+            correction = currentLine - json.height;
             currentLine = json.height;
         }
         console.info(`rendering line : ${currentLine} / ${json.height}`);
@@ -68,13 +70,15 @@ var connectSocket = function() {
             esp32RenderingFailureTimeout ? clearTimeout(esp32RenderingFailureTimeout) : null;
             if (imageLineArray && imageLineArray[pointer] && imageLineArray[pointer].length) {
                 var payload = {
-                        image: imageLineArray[pointer].join(","),
-                        width: json.width,
-                        height: imagePixelHeightRatio * numberOfLinesToRender,
-                        x: json.x,
-                        y: json.y + currentLine
-                    }
-                    // console.log("payload sent to device :", payload);
+                    image: imageLineArray[pointer].join(","),
+                    width: json.width,
+                    height: (imagePixelHeightRatio * numberOfLinesToRender) - correction,
+                    x: json.x,
+                    y: json.y + currentLine
+                }
+                console.log((imagePixelHeightRatio * numberOfLinesToRender));
+                console.log(correction);
+                // console.log("payload sent to device :", payload);
                 socket.send(JSON.stringify(payload));
                 renderSimulatedImageLine(pointer);
                 pointer += 1;
@@ -211,7 +215,12 @@ var renderSimulatedImageLine = function(lineNumber) {
 
 
 var dataToColor = function(data) {
-    return data ? data.replace('0x', '#') + '0' : '#000';
+    var value = '#000';
+    if (data) {
+        var elem = data.replace('0x', '');
+        value = `#${elem}${elem}${elem}`;
+    }
+    return value;
 }
 
 var updateJsonPayloadImage = function() {
@@ -296,9 +305,23 @@ const handleFile = (e) => {
                     const blue = tmpArray.data[index + 2];
                     const alpha = tmpArray.data[index + 3];
 
-                    tmpPixelArray.push('0x' + rgbToHex(red, green, blue).slice(0, 2));
+                    const avrgColor = (((red + green + blue) / 3) & 0xff);
+
+                    tmpPixelArray.push('0x' + avrgColor.toString(16));
                 }
-                imgDataInput.value = JSON.stringify(tmpPixelArray);
+
+                const lines = [];
+                for (let index = 0; index < tmpArray.height; index++) {
+                    lines.push(tmpPixelArray.slice(index * tmpArray.width, (index * tmpArray.width) + tmpArray.width));
+                }
+
+                let finalArray = []
+                for (var i = 0; i < lines.length; i++) {
+                    finalArray = [...finalArray, ...lines[i].filter((l, i) => i % 2 === 0)];
+                    finalArray = [...finalArray, ...lines[i].filter((l, i) => i % 2 !== 0)];
+                }
+
+                imgDataInput.value = JSON.stringify(finalArray);
                 imgHeightInput.value = tmpArray.height;
                 imgWidthInput.value = tmpArray.width;
                 numberOfLinesInput.value = Math.floor(MAX_ELEMENT_PER_PAYLOAD / tmpArray.width);
