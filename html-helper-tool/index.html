@@ -41,20 +41,31 @@
                             </div>
                         </div>
                         <div class="input-block">
-                            <label for="imgWidth">Image width : </label>
-                            <input id="imgWidth" onchange="updateJsonPayloadWidth()" type="number" value="467" placeholder="width in px" />
+                            <label for="imgWidth">Image (width x height) : </label>
+                            <div class="inputs">
+                                <input id="imgWidth" onchange="updateJsonPayloadWidth()" type="number" value="467" placeholder="width in px" />
+                                <span class="sep">x</span>
+                                <input id="imgHeight" onchange="updateJsonPayloadHeight()" type="number" value="700" placeholder="height in px" />
+                            </div>
                         </div>
                         <div class="input-block">
-                            <label for="imgHeight">Image height : </label>
-                            <input id="imgHeight" onchange="updateJsonPayloadHeight()" type="number" value="700" placeholder="height in px" />
+                            <label for="imgX">Image (x,y) : </label>
+                            <div class="inputs">
+                                <input id="imgX" onchange="updateJsonPayloadX()" type="number" value="0" placeholder="x" />
+                                <span class="sep">,</span>
+                                <input id="imgY" onchange="updateJsonPayloadY()" type="number" value="0" placeholder="y" />
+                            </div>
                         </div>
                         <div class="input-block">
-                            <label for="imgX">Image x position : </label>
-                            <input id="imgX" onchange="updateJsonPayloadX()" type="number" value="0" placeholder="x postition" />
-                        </div>
-                        <div class="input-block">
-                            <label for="imgY">Image y position : </label>
-                            <input id="imgY" onchange="updateJsonPayloadY()" type="number" value="0" placeholder="y position" />
+                            <label for="imgData">Simulator rendering algo: </label>
+                            <div class="checkbox">
+                                <label for="algo1">Algorithm 1 :</label>
+                                <input type="checkbox" onchange="algoSelected(event)" id="algo1" checked disabled />
+                            </div>
+                            <div class="checkbox">
+                                <label for="algo2">Algorithm 2 :</label>
+                                <input type="checkbox" onchange="algoSelected(event)" id="algo2" />
+                            </div>
                         </div>
                     </div>
                     <div class="render-image-btn">

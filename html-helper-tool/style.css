@@ -98,6 +98,38 @@ button {
     width: 100%;
 }
 
+.inputs {
+    display: flex;
+    vertical-align: center;
+}
+
+.input-block .inputs input {
+    flex: 1;
+}
+
+.checkbox>label {
+    flex: 1;
+    white-space: nowrap;
+    padding: 0;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+input[type="checkbox"] {
+    height: 15px;
+    text-align: left;
+}
+
+span.sep {
+    font-size: 20px;
+    display: inline-block;
+    margin: 0px 5px;
+}
+
 .input-block textarea#imgData {
     width: 100%;
     height: 300px;
